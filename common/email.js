@@ -9,7 +9,7 @@ function send_mails(to_mail, subj, htmlBody) {
         service: 'gmail',
         auth: {
             user: 'zarvis1287@gmail.com',
-            pass: 'rj14bd1287'
+            pass: '********'
         }
     });
 
