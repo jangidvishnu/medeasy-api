@@ -53,10 +53,11 @@ exports.login = async (req, res) => {
 
         let userInfo = await db.query("SELECT * FROM `users` WHERE `email` = " + db.pool.escape(email) + " AND `password` = " + db.pool.escape(password_hash));
         if (userInfo.length) {
-            let user_obj = { user_id: userInfo[0].id, email: userInfo[0].email};
+            let user_obj = { user_id: userInfo[0].id, email: userInfo[0].email };
             const accessToken = await jwt.generateToken(user_obj);
             if (accessToken.success == true) {
                 let user = {
+                    id: userInfo[0].id,
                     role: userInfo[0].role,
                     address: userInfo[0].address,
                     pincode: userInfo[0].pincode,

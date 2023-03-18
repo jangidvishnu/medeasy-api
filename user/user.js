@@ -7,7 +7,7 @@ const fs = require('fs');
 exports.getUserDetails = async (req, res) => {
     try {
         let user_id = req.user.user_id;
-        let user = await db.query("SELECT `name`, `email`, `role`, `address`,  `pincode`,`join_time`, `update_time` FROM `users` WHERE `id` = " + user_id);
+        let user = await db.query("SELECT `id`,`name`, `email`, `role`, `address`,  `pincode`,`join_time`, `update_time` FROM `users` WHERE `id` = " + user_id);
         if (user.length) {
             res.status(200).send({ success: true, msg: '', data: { user: user[0] }, errors: '' });
         } else {
