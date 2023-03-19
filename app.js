@@ -34,7 +34,7 @@ app.post('/auth/login', [auth.login]);
 app.post('/auth/signup', [auth.signup]);
 app.get('/medicine/alternatives', [medicine.getAlternativesMedicines]);
 app.get('/medicine', [medicine.getMedicines]);
-
+app.get('/doctors', [user.getDoctorsLikeName]);
 
 
 app.use(jwt.authenticateToken);

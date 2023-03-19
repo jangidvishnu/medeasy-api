@@ -12,8 +12,8 @@ function isJson(str) {
     return true;
 }
 
-exports.getAlternativeMedicineById = async (id) => {
-    let alternatives = await db.query("SELECT * FROM `medicine` WHERE `compounds` IN (SELECT `compounds` FROM `medicine` WHERE `id` = " + id + " ) && `id` != " + id + " ORDER BY `price` ASC;");
+exports.getAlternativeMedicineById = async (id, mustBeLess = false) => {
+    let alternatives = await db.query("SELECT * FROM `medicine` WHERE `compounds` IN (SELECT `compounds` FROM `medicine` WHERE `id` = " + id + " ) && `id` != " + id + (mustBeLess ? " && `price` < ( SELECT `price` FROM `medicine` WHERE `id` = " + id + "  ) " : "") + " ORDER BY `price` ASC;");
     return alternatives;
 }
 
@@ -22,18 +22,18 @@ exports.getAlternativesMedicines = async (req, res) => {
         let searchParam = req.query.searchParam;
         let alternatives;
 
-        if (isJson(searchParam) && isNaN(searchParam)) {
-            let searchedMedicines = JSON.parse(searchParam);
+        if (searchParam.includes(",") && isNaN(searchParam)) {
+            let searchedMedicines = searchParam.split(",");
             alternatives = [];
 
             for (let searchedMedicine of searchedMedicines) {
-                let alternative = await this.getAlternativeMedicineById(searchedMedicine);
-                (alternative) ? alternatives.push(alternative[0]) : "";
+                let alternative = await this.getAlternativeMedicineById(searchedMedicine, true);
+                (alternative && alternative[0]) ? alternatives.push(alternative[0]) : "";
             }
 
             res.status(200).send({ success: true, msg: 'Alternatives Found', data: { alternatives: alternatives }, errors: '' });
         } else if (!isNaN(searchParam)) {
-            alternatives = await this.getAlternativeMedicineById(searchParam);
+            alternatives = await this.getAlternativeMedicineById(searchParam, false);
             res.status(200).send({ success: true, msg: 'Alternatives Found', data: { alternatives: alternatives }, errors: '' });
         } else {
             res.status(400).send({ success: false, msg: 'Invalid Data', data: {}, errors: '' });

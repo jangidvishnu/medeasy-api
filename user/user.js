@@ -20,6 +20,22 @@ exports.getUserDetails = async (req, res) => {
     }
 };
 
+exports.getDoctorsLikeName = async (req, res) => {
+    try {
+        let searchedName = req.query.name;
+        let doctors = await db.query("SELECT `id`,`name` FROM `users` WHERE `name` like '%" + searchedName + "%' AND LOWER(`role`) = 'doctor'");
+        if (doctors.length) {
+            res.status(200).send({ success: true, msg: '', data: { doctors: doctors }, errors: '' });
+        } else {
+            res.status(200).send({ success: false, msg: 'Doctors Not Found...', data: {} });
+        }
+    } catch (err) {
+        console.log('in getDoctorsLikeName function error');
+        console.log(err);
+        res.status(500).send({ success: false, msg: 'Error', data: {}, errors: '' });
+    }
+};
+
 exports.getRequests = async (req, res) => {
     try {
         let user_id = req.user.user_id;
@@ -40,18 +56,18 @@ exports.getStoreRequests = async (req, res) => {
     try {
         let user_id = req.user.user_id;
         let user = await db.query("SELECT * FROM `users` WHERE `role` = 'Chemist' AND `id` = " + db.pool.escape(user_id));
-        if(user.length){
-            let requests = await db.query("SELECT * FROM `request` WHERE `pincode` = '" +user[0].pincode + "' AND `id` NOT IN (SELECT `request_id` FROM `request_replied` WHERE `store_user_id` = "+ user_id +" ) ORDER BY request.id DESC ;");
+        if (user.length) {
+            let requests = await db.query("SELECT * FROM `request` WHERE `pincode` = '" + user[0].pincode + "' AND `id` NOT IN (SELECT `request_id` FROM `request_replied` WHERE `store_user_id` = " + user_id + " ) ORDER BY request.id DESC ;");
             if (requests.length) {
                 res.status(200).send({ success: true, msg: '', data: { requests: requests }, errors: '' });
             } else {
                 res.status(200).send({ success: false, msg: 'Requests  Not Found...', data: {} });
             }
         }
-        else{
+        else {
             res.status(200).send({ success: false, msg: 'User Info not found  Not Found...', data: {} });
         }
-        
+
     } catch (err) {
         console.log('in getRequests function error');
         console.log(err);
@@ -62,7 +78,7 @@ exports.getStoreRequests = async (req, res) => {
 exports.getRepliesOfRequest = async (req, res) => {
     try {
         let request_id = req.query.request_id;
-        let replies = await db.query("SELECT `remarks`,`status`,users.name AS store_name, users.address AS store_address  FROM `request_replied`,`users`  WHERE `request_id` = "+ request_id +" AND `store_user_id` = users.id ;");
+        let replies = await db.query("SELECT `remarks`,`status`,users.name AS store_name, users.address AS store_address  FROM `request_replied`,`users`  WHERE `request_id` = " + request_id + " AND `store_user_id` = users.id ;");
         if (replies.length) {
             res.status(200).send({ success: true, msg: '', data: { replies: replies }, errors: '' });
         } else {
@@ -85,7 +101,7 @@ exports.replyRequest = async (req, res) => {
             let reply = await db.query("INSERT INTO `request_replied` (`request_id`,`store_user_id`,`remarks`,`status`) VALUES ('" + request_id + "','" + user_id + "','" + remarks + "','" + status + "')  ");
             let changeStatus = await db.query("UPDATE `request` SET `status` = 'replied' WHERE `id` = " + request_id);
             res.status(200).send({ success: true, msg: '', data: {}, errors: '' });
-        }    
+        }
         else {
             res.status(200).send({ success: false, msg: 'Parameters missing...', data: {} });
         }
@@ -141,7 +157,7 @@ exports.sendRequest = async (req, res) => {
         form.parse(req, function (err, fields, files) {
             let description = fields.description;
             let pincode = fields.pincode;
-            if(!pincode){
+            if (!pincode) {
                 let user = db.query("SELECT * FROM `users` WHERE `id` = " + user_id);
                 pincode = user[0].pincode;
             }
